@@ -12,6 +12,9 @@ export default function Dashboard({ user, onLogout }) {
   const [lecturas, setLecturas] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
+  const [simForm, setSimForm] = useState({ porcentaje_inicial: 90, porcentaje_final: 10, dias: 14 })
+  const [simLoading, setSimLoading] = useState(false)
+  const [simMensaje, setSimMensaje] = useState("")
 
   useEffect(() => {
     api
@@ -24,7 +27,10 @@ export default function Dashboard({ user, onLogout }) {
   }, [])
 
   useEffect(() => {
-    if (fincaId === null) return
+    if (fincaId === null) {
+      setLoading(false)
+      return
+    }
     setLoading(true)
     api
       .silos(fincaId)
@@ -47,6 +53,30 @@ export default function Dashboard({ user, onLogout }) {
   }, [selectedSiloId])
 
   const siloSeleccionado = silos.find((s) => s.id === selectedSiloId)
+
+  function refrescarSiloSeleccionado() {
+    if (selectedSiloId === null) return
+    api.silo(selectedSiloId).then((detalle) => {
+      setSilos((prev) => prev.map((s) => (s.id === detalle.id ? detalle : s)))
+    })
+    api.proyeccion(selectedSiloId).then(setProyeccion).catch(() => setProyeccion(null))
+    api.lecturas(selectedSiloId, "?limite=200").then(setLecturas).catch(() => setLecturas([]))
+  }
+
+  async function handleSimular() {
+    if (selectedSiloId === null) return
+    setSimLoading(true)
+    setSimMensaje("")
+    try {
+      const res = await api.simular(selectedSiloId, { ...simForm, borrar_anteriores: true })
+      setSimMensaje(`Se generaron ${res.lecturas_insertadas} lecturas simuladas.`)
+      refrescarSiloSeleccionado()
+    } catch (e) {
+      setSimMensaje(e.message)
+    } finally {
+      setSimLoading(false)
+    }
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 pb-12">
@@ -87,7 +117,9 @@ export default function Dashboard({ user, onLogout }) {
           )}
         </div>
 
-        {loading ? (
+        {fincas.length === 0 ? (
+          <p className="text-sm text-gray-400">No hay fincas registradas todavía.</p>
+        ) : loading ? (
           <p className="text-sm text-gray-400">Cargando silos...</p>
         ) : silos.length === 0 ? (
           <p className="text-sm text-gray-400">No hay silos registrados en esta finca.</p>
@@ -112,6 +144,60 @@ export default function Dashboard({ user, onLogout }) {
             <p className="text-sm text-gray-500">{siloSeleccionado?.nombre ?? "selecciona un silo"}</p>
           </div>
         </div>
+
+        {user?.rol === "admin" && siloSeleccionado && (
+          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-4">
+            <p className="text-sm font-medium text-amber-800 mb-2">
+              Generar datos simulados para {siloSeleccionado.nombre}
+            </p>
+            <p className="text-xs text-amber-700 mb-3">
+              Reemplaza las lecturas actuales de este silo por una serie sintética. Útil mientras no hay sensores reales conectados.
+            </p>
+            <div className="flex flex-wrap items-end gap-3">
+              <div>
+                <label className="block text-xs text-gray-600 mb-1">% inicial</label>
+                <input
+                  type="number"
+                  min="0"
+                  max="100"
+                  value={simForm.porcentaje_inicial}
+                  onChange={(e) => setSimForm({ ...simForm, porcentaje_inicial: Number(e.target.value) })}
+                  className="w-20 px-2 py-1 border border-gray-300 rounded text-sm"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-gray-600 mb-1">% final</label>
+                <input
+                  type="number"
+                  min="0"
+                  max="100"
+                  value={simForm.porcentaje_final}
+                  onChange={(e) => setSimForm({ ...simForm, porcentaje_final: Number(e.target.value) })}
+                  className="w-20 px-2 py-1 border border-gray-300 rounded text-sm"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-gray-600 mb-1">días</label>
+                <input
+                  type="number"
+                  min="1"
+                  max="90"
+                  value={simForm.dias}
+                  onChange={(e) => setSimForm({ ...simForm, dias: Number(e.target.value) })}
+                  className="w-20 px-2 py-1 border border-gray-300 rounded text-sm"
+                />
+              </div>
+              <button
+                onClick={handleSimular}
+                disabled={simLoading}
+                className="bg-granjazul-blue text-white text-sm px-4 py-1.5 rounded-lg disabled:opacity-50"
+              >
+                {simLoading ? "Generando..." : "Generar"}
+              </button>
+            </div>
+            {simMensaje && <p className="text-xs text-amber-700 mt-2">{simMensaje}</p>}
+          </div>
+        )}
 
         {proyeccion && (
           <div className="bg-white rounded-xl border border-gray-200 p-4 mb-4">

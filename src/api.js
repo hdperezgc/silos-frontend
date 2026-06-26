@@ -43,4 +43,6 @@ export const api = {
   silo: (id) => request(`/silos/${id}`),
   lecturas: (id, params = "") => request(`/silos/${id}/lecturas${params}`),
   proyeccion: (id) => request(`/silos/${id}/proyeccion`),
+  simular: (id, payload) =>
+    request(`/silos/${id}/simular`, { method: "POST", body: JSON.stringify(payload) }),
 }
