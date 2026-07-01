@@ -45,6 +45,10 @@ export const api = {
   proyeccion: (id) => request(`/silos/${id}/proyeccion`),
   simular: (id, payload) =>
     request(`/silos/${id}/simular`, { method: "POST", body: JSON.stringify(payload) }),
+  simularLlenar: (id, payload) =>
+    request(`/silos/${id}/simular/llenar`, { method: "POST", body: JSON.stringify(payload) }),
+  simularDescarga: (id, payload) =>
+    request(`/silos/${id}/simular/descarga`, { method: "POST", body: JSON.stringify(payload) }),
   adminUsuarios: () => request("/admin/usuarios"),
   adminCrearUsuario: (payload) =>
     request("/admin/usuarios", { method: "POST", body: JSON.stringify(payload) }),
