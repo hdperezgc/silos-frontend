@@ -25,11 +25,10 @@ export default function Login({ onLogin }) {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
       <form onSubmit={handleSubmit} className="w-full max-w-sm bg-white rounded-xl border border-gray-200 p-8">
-        <div className="flex items-center gap-2 mb-6">
-          <div className="w-2 h-8 bg-granjazul-orange rounded" />
-          <h1 className="text-xl font-medium text-granjazul-blue">Granjazul</h1>
+        <div className="flex flex-col items-center mb-6">
+          <img src="/logo.png" alt="Granjazul" className="h-20 object-contain mb-2" />
+          <p className="text-sm text-gray-500">Monitoreo de silos</p>
         </div>
-        <p className="text-sm text-gray-500 mb-6">Monitoreo de silos</p>
 
         <label className="block text-sm text-gray-600 mb-1">Email</label>
         <input

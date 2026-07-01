@@ -37,13 +37,13 @@ export default function Sidebar({ user, activePage, onNavigate, onLogout }) {
   const SidebarContent = () => (
     <div className="flex flex-col h-full">
       {/* Logo */}
-      <div className={`flex items-center gap-3 px-4 py-5 border-b border-white/10 ${collapsed ? "justify-center" : ""}`}>
-        <div className="w-2 h-8 bg-granjazul-orange rounded-full flex-shrink-0" />
-        {!collapsed && (
-          <div>
-            <p className="text-white font-semibold text-base leading-none">Granjazul</p>
-            <p className="text-blue-300 text-[11px] leading-none mt-1">Monitoreo de silos</p>
+      <div className={`flex items-center justify-center px-4 py-4 border-b border-white/10`}>
+        {collapsed ? (
+          <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center">
+            <img src="/logo.png" alt="Granjazul" className="w-6 h-6 object-contain" />
           </div>
+        ) : (
+          <img src="/logo.png" alt="Granjazul" className="h-14 object-contain" />
         )}
       </div>
 
