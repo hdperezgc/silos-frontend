@@ -50,4 +50,6 @@ export const api = {
     request("/admin/usuarios", { method: "POST", body: JSON.stringify(payload) }),
   adminActualizarUsuario: (id, payload) =>
     request(`/admin/usuarios/${id}`, { method: "PATCH", body: JSON.stringify(payload) }),
+  adminResetPassword: (id, nueva_password) =>
+    request(`/admin/usuarios/${id}/password`, { method: "PATCH", body: JSON.stringify({ nueva_password }) }),
 }

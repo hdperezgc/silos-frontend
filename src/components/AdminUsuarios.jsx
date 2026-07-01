@@ -99,6 +99,9 @@ function FormNuevoUsuario({ onCreado, onCancelar }) {
 function FilaUsuario({ usuario, onActualizado }) {
   const [editRol, setEditRol] = useState(usuario.rol)
   const [loading, setLoading] = useState(false)
+  const [showReset, setShowReset] = useState(false)
+  const [nuevaPass, setNuevaPass] = useState("")
+  const [resetMsg, setResetMsg] = useState("")
 
   async function handleRol(nuevoRol) {
     setEditRol(nuevoRol)
@@ -123,38 +126,93 @@ function FilaUsuario({ usuario, onActualizado }) {
     }
   }
 
+  async function handleReset(e) {
+    e.preventDefault()
+    setResetMsg("")
+    setLoading(true)
+    try {
+      await api.adminResetPassword(usuario.id, nuevaPass)
+      setResetMsg("Contraseña actualizada.")
+      setNuevaPass("")
+      setTimeout(() => { setShowReset(false); setResetMsg("") }, 1500)
+    } catch (err) {
+      setResetMsg(err.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
-    <tr className="border-t border-gray-100">
-      <td className="py-3 pr-4">
-        <p className="text-sm font-medium">{usuario.nombre}</p>
-        <p className="text-xs text-gray-400">{usuario.email}</p>
-      </td>
-      <td className="py-3 pr-4">
-        <select
-          value={editRol}
-          onChange={(e) => handleRol(e.target.value)}
-          disabled={loading}
-          className={`text-xs font-medium px-2 py-1 rounded border-0 ${rolBadge[editRol]}`}
-        >
-          {ROLES.map((r) => (
-            <option key={r} value={r}>{r}</option>
-          ))}
-        </select>
-      </td>
-      <td className="py-3">
-        <button
-          onClick={handleToggleActivo}
-          disabled={loading}
-          className={`text-xs px-3 py-1 rounded-full font-medium ${
-            usuario.activo
-              ? "bg-green-100 text-green-700 hover:bg-red-50 hover:text-red-600"
-              : "bg-red-100 text-red-600 hover:bg-green-50 hover:text-green-700"
-          }`}
-        >
-          {usuario.activo ? "activo" : "inactivo"}
-        </button>
-      </td>
-    </tr>
+    <>
+      <tr className="border-t border-gray-100">
+        <td className="py-3 pr-4">
+          <p className="text-sm font-medium">{usuario.nombre}</p>
+          <p className="text-xs text-gray-400">{usuario.email}</p>
+        </td>
+        <td className="py-3 pr-4">
+          <select
+            value={editRol}
+            onChange={(e) => handleRol(e.target.value)}
+            disabled={loading}
+            className={`text-xs font-medium px-2 py-1 rounded border-0 ${rolBadge[editRol]}`}
+          >
+            {ROLES.map((r) => (
+              <option key={r} value={r}>{r}</option>
+            ))}
+          </select>
+        </td>
+        <td className="py-3 pr-4">
+          <button
+            onClick={handleToggleActivo}
+            disabled={loading}
+            className={`text-xs px-3 py-1 rounded-full font-medium ${
+              usuario.activo
+                ? "bg-green-100 text-green-700 hover:bg-red-50 hover:text-red-600"
+                : "bg-red-100 text-red-600 hover:bg-green-50 hover:text-green-700"
+            }`}
+          >
+            {usuario.activo ? "activo" : "inactivo"}
+          </button>
+        </td>
+        <td className="py-3">
+          <button
+            onClick={() => { setShowReset(!showReset); setResetMsg(""); setNuevaPass("") }}
+            className="text-xs text-gray-400 hover:text-granjazul-blue underline"
+          >
+            {showReset ? "cancelar" : "cambiar contraseña"}
+          </button>
+        </td>
+      </tr>
+      {showReset && (
+        <tr className="bg-gray-50">
+          <td colSpan={4} className="px-0 pb-3">
+            <form onSubmit={handleReset} className="flex items-center gap-2 px-1">
+              <input
+                type="password"
+                required
+                minLength={8}
+                placeholder="Nueva contraseña (mín. 8 caracteres)"
+                value={nuevaPass}
+                onChange={(e) => setNuevaPass(e.target.value)}
+                className="flex-1 px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-granjazul-blue"
+              />
+              <button
+                type="submit"
+                disabled={loading}
+                className="bg-granjazul-blue text-white text-xs px-3 py-1.5 rounded-lg disabled:opacity-50 whitespace-nowrap"
+              >
+                {loading ? "Guardando..." : "Guardar"}
+              </button>
+            </form>
+            {resetMsg && (
+              <p className={`text-xs mt-1 px-1 ${resetMsg.includes("actualizada") ? "text-green-600" : "text-red-600"}`}>
+                {resetMsg}
+              </p>
+            )}
+          </td>
+        </tr>
+      )}
+    </>
   )
 }
 
@@ -203,7 +261,8 @@ export default function AdminUsuarios({ onCerrar }) {
                 <tr className="text-left text-xs text-gray-400 uppercase tracking-wide">
                   <th className="pb-2 pr-4">Usuario</th>
                   <th className="pb-2 pr-4">Rol</th>
-                  <th className="pb-2">Estado</th>
+                  <th className="pb-2 pr-4">Estado</th>
+                  <th className="pb-2">Contraseña</th>
                 </tr>
               </thead>
               <tbody>
