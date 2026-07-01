@@ -2,6 +2,7 @@ import { useEffect, useState } from "react"
 import { api, clearToken } from "../api"
 import SiloCard from "./SiloCard"
 import ProjectionChart from "./ProjectionChart"
+import AdminUsuarios from "./AdminUsuarios"
 
 export default function Dashboard({ user, onLogout }) {
   const [fincas, setFincas] = useState([])
@@ -15,6 +16,7 @@ export default function Dashboard({ user, onLogout }) {
   const [simForm, setSimForm] = useState({ porcentaje_inicial: 90, porcentaje_final: 10, dias: 14 })
   const [simLoading, setSimLoading] = useState(false)
   const [simMensaje, setSimMensaje] = useState("")
+  const [showAdmin, setShowAdmin] = useState(false)
 
   useEffect(() => {
     api
@@ -90,11 +92,21 @@ export default function Dashboard({ user, onLogout }) {
         </div>
         <div className="flex items-center gap-4">
           <span className="text-xs text-blue-200">{user?.email}</span>
+          {user?.rol === "admin" && (
+            <button
+              onClick={() => setShowAdmin(true)}
+              className="text-xs text-blue-200 hover:text-white border border-blue-400 px-2 py-1 rounded"
+            >
+              Usuarios
+            </button>
+          )}
           <button onClick={() => { clearToken(); onLogout() }} className="text-xs text-blue-200 hover:text-white">
             Salir
           </button>
         </div>
       </header>
+
+      {showAdmin && <AdminUsuarios onCerrar={() => setShowAdmin(false)} />}
 
       <main className="max-w-5xl mx-auto px-6 py-8">
         {error && <p className="text-sm text-red-600 mb-4">{error}</p>}

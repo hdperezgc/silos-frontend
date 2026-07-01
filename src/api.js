@@ -45,4 +45,9 @@ export const api = {
   proyeccion: (id) => request(`/silos/${id}/proyeccion`),
   simular: (id, payload) =>
     request(`/silos/${id}/simular`, { method: "POST", body: JSON.stringify(payload) }),
+  adminUsuarios: () => request("/admin/usuarios"),
+  adminCrearUsuario: (payload) =>
+    request("/admin/usuarios", { method: "POST", body: JSON.stringify(payload) }),
+  adminActualizarUsuario: (id, payload) =>
+    request(`/admin/usuarios/${id}`, { method: "PATCH", body: JSON.stringify(payload) }),
 }
