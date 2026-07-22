@@ -41,6 +41,8 @@ export const api = {
   fincas: () => request("/fincas"),
   silos: (fincaId) => request(`/silos${fincaId ? `?finca_id=${fincaId}` : ""}`),
   silo: (id) => request(`/silos/${id}`),
+  actualizarSilo: (id, payload) =>
+    request(`/silos/${id}`, { method: "PATCH", body: JSON.stringify(payload) }),
   lecturas: (id, params = "") => request(`/silos/${id}/lecturas${params}`),
   proyeccion: (id) => request(`/silos/${id}/proyeccion`),
   simular: (id, payload) =>
@@ -57,4 +59,10 @@ export const api = {
   adminResetPassword: (id, nueva_password) =>
     request(`/admin/usuarios/${id}/password`, { method: "PATCH", body: JSON.stringify({ nueva_password }) }),
   bitacora: (params = "") => request(`/bitacora${params}`),
+  ordenes: (params = "") => request(`/ordenes${params}`),
+  evaluarOrdenes: () => request("/ordenes/evaluar-todas", { method: "POST" }),
+  confirmarOrden: (id, payload) =>
+    request(`/ordenes/${id}/confirmar`, { method: "PATCH", body: JSON.stringify(payload) }),
+  actualizarEstadoOrden: (id, payload) =>
+    request(`/ordenes/${id}/estado`, { method: "PATCH", body: JSON.stringify(payload) }),
 }
