@@ -2,6 +2,7 @@ import { useState } from "react"
 import Sidebar from "./Sidebar"
 import NivelesView from "./NivelesView"
 import BitacoraView from "./BitacoraView"
+import OrdenesProduccionView from "./OrdenesProduccionView"
 import AdminUsuarios from "./AdminUsuarios"
 
 export default function Dashboard({ user, onLogout }) {
@@ -11,6 +12,7 @@ export default function Dashboard({ user, onLogout }) {
     switch (activePage) {
       case "dashboard": return <NivelesView user={user} />
       case "bitacora": return <BitacoraView />
+      case "ordenes": return <OrdenesProduccionView />
       case "admin": return <AdminUsuarios onCerrar={() => setActivePage("dashboard")} />
       default: return <NivelesView user={user} />
     }

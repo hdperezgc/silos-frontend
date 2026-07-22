@@ -1,3 +1,5 @@
+import { Pencil } from "lucide-react"
+
 // Coordenadas del SVG (viewBox 0 0 140 220): cuerpo cilíndrico de y=40 a y=125,
 // cono de y=125 a la punta en y=195. Esto refleja la geometría real del silo
 // (no es un cilindro simple), tal como se definió en el diseño del piloto.
@@ -20,7 +22,7 @@ function fillColorFor(label) {
   return "#E24B4A"
 }
 
-export default function SiloCard({ silo, onSelect, selected }) {
+export default function SiloCard({ silo, onSelect, selected, ordenPendiente, onEditar }) {
   const nivel = silo.nivel_actual
   const sinDatos = !nivel
 
@@ -36,15 +38,35 @@ export default function SiloCard({ silo, onSelect, selected }) {
   const clipId = `clip-silo-${silo.id}`
 
   return (
-    <button
+    <div
+      role="button"
+      tabIndex={0}
       onClick={() => onSelect?.(silo.id)}
-      className={`text-left bg-white rounded-xl p-4 border transition ${
+      onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") onSelect?.(silo.id) }}
+      className={`relative text-left bg-white rounded-xl p-4 border transition cursor-pointer ${
         selected ? "border-granjazul-blue ring-1 ring-granjazul-blue" : "border-gray-200 hover:border-gray-300"
       }`}
     >
-      <div className="flex items-center justify-between mb-2">
+      {onEditar && (
+        <button
+          onClick={(e) => { e.stopPropagation(); onEditar(silo) }}
+          className="absolute top-3 right-3 text-gray-300 hover:text-granjazul-blue"
+          title="Editar silo"
+        >
+          <Pencil size={14} />
+        </button>
+      )}
+
+      <div className="flex items-center justify-between mb-2 pr-5">
         <span className="text-sm font-medium text-gray-700">{silo.nombre}</span>
-        <span className={`text-xs font-medium px-2 py-0.5 rounded ${estado.classes}`}>{estado.label}</span>
+        <div className="flex items-center gap-1">
+          {ordenPendiente && (
+            <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-orange-100 text-orange-700 whitespace-nowrap">
+              orden pendiente
+            </span>
+          )}
+          <span className={`text-xs font-medium px-2 py-0.5 rounded ${estado.classes}`}>{estado.label}</span>
+        </div>
       </div>
 
       <svg viewBox="0 0 140 220" className="w-full max-w-[130px] mx-auto" aria-hidden="true">
@@ -80,6 +102,6 @@ export default function SiloCard({ silo, onSelect, selected }) {
           <p className="text-center text-xs text-gray-500">{nivel.kg_estimados.toFixed(0)} kg estimados</p>
         </>
       )}
-    </button>
+    </div>
   )
 }

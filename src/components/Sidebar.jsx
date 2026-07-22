@@ -2,6 +2,7 @@ import { useState } from "react"
 import {
   LayoutDashboard,
   ClipboardList,
+  ClipboardCheck,
   Users,
   LogOut,
   ChevronLeft,
@@ -14,6 +15,7 @@ import { clearToken } from "../api"
 const NAV_ITEMS = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
   { id: "bitacora", label: "Bitácora", icon: ClipboardList },
+  { id: "ordenes", label: "Órdenes de producción", icon: ClipboardCheck },
 ]
 
 const ADMIN_ITEMS = [

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react"
 import { api } from "../api"
 import SiloCard from "./SiloCard"
+import SiloForm from "./SiloForm"
 import ProjectionChart from "./ProjectionChart"
 
 export default function NivelesView({ user }) {
@@ -19,6 +20,8 @@ export default function NivelesView({ user }) {
   const [autoForm, setAutoForm] = useState({ kg_inicial: 0, kg_final: 0, dias: 14 })
   const [simLoading, setSimLoading] = useState(false)
   const [simMensaje, setSimMensaje] = useState({ texto: "", ok: true })
+  const [silosConOrden, setSilosConOrden] = useState(new Set())
+  const [siloEditando, setSiloEditando] = useState(null)
 
   useEffect(() => {
     api.fincas()
@@ -28,6 +31,29 @@ export default function NivelesView({ user }) {
       })
       .catch((e) => setError(e.message))
   }, [])
+
+  // Al cargar el dashboard, se pide al backend que revise todos los silos y
+  // genere sugerencias de orden de producción si corresponde, y luego se
+  // consulta cuáles silos ya tienen alguna orden abierta para marcarlos.
+  useEffect(() => {
+    api.evaluarOrdenes().catch(() => {})
+    cargarSilosConOrden()
+  }, [])
+
+  function cargarSilosConOrden() {
+    Promise.all([
+      api.ordenes("?estado=sugerida"),
+      api.ordenes("?estado=confirmada"),
+      api.ordenes("?estado=en_proceso"),
+    ])
+      .then(([sugeridas, confirmadas, enProceso]) => {
+        const idsSet = new Set(
+          [...sugeridas, ...confirmadas, ...enProceso].map((o) => o.silo_id)
+        )
+        setSilosConOrden(idsSet)
+      })
+      .catch(() => setSilosConOrden(new Set()))
+  }
 
   useEffect(() => {
     if (fincaId === null) { setLoading(false); return }
@@ -125,9 +151,23 @@ export default function NivelesView({ user }) {
               silo={silo}
               selected={silo.id === selectedSiloId}
               onSelect={setSelectedSiloId}
+              ordenPendiente={silosConOrden.has(silo.id)}
+              onEditar={user?.rol === "admin" ? setSiloEditando : undefined}
             />
           ))}
         </div>
+      )}
+
+      {siloEditando && (
+        <SiloForm
+          silo={siloEditando}
+          onCerrar={() => setSiloEditando(null)}
+          onGuardado={() => {
+            api.silo(siloEditando.id).then((detalle) => {
+              setSilos((prev) => prev.map((s) => (s.id === detalle.id ? detalle : s)))
+            })
+          }}
+        />
       )}
 
       <div className="border-t border-gray-200 mb-6" />
