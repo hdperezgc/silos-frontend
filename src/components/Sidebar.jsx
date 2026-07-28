@@ -4,6 +4,7 @@ import {
   ClipboardList,
   ClipboardCheck,
   Users,
+  Warehouse,
   LogOut,
   ChevronLeft,
   ChevronRight,
@@ -19,6 +20,7 @@ const NAV_ITEMS = [
 ]
 
 const ADMIN_ITEMS = [
+  { id: "mantenimiento", label: "Fincas y silos", icon: Warehouse },
   { id: "admin", label: "Usuarios", icon: Users },
 ]
 

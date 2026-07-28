@@ -39,8 +39,12 @@ export const api = {
     request("/auth/login", { method: "POST", body: JSON.stringify({ email, password }) }),
   me: () => request("/auth/me"),
   fincas: () => request("/fincas"),
+  crearFinca: (payload) =>
+    request("/fincas", { method: "POST", body: JSON.stringify(payload) }),
   silos: (fincaId) => request(`/silos${fincaId ? `?finca_id=${fincaId}` : ""}`),
   silo: (id) => request(`/silos/${id}`),
+  crearSilo: (payload) =>
+    request("/silos", { method: "POST", body: JSON.stringify(payload) }),
   actualizarSilo: (id, payload) =>
     request(`/silos/${id}`, { method: "PATCH", body: JSON.stringify(payload) }),
   lecturas: (id, params = "") => request(`/silos/${id}/lecturas${params}`),

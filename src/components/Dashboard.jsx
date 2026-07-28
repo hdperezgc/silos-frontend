@@ -4,6 +4,7 @@ import NivelesView from "./NivelesView"
 import BitacoraView from "./BitacoraView"
 import OrdenesProduccionView from "./OrdenesProduccionView"
 import AdminUsuarios from "./AdminUsuarios"
+import Mantenimiento from "./Mantenimiento"
 
 export default function Dashboard({ user, onLogout }) {
   const [activePage, setActivePage] = useState("dashboard")
@@ -13,6 +14,7 @@ export default function Dashboard({ user, onLogout }) {
       case "dashboard": return <NivelesView user={user} />
       case "bitacora": return <BitacoraView />
       case "ordenes": return <OrdenesProduccionView />
+      case "mantenimiento": return <Mantenimiento />
       case "admin": return <AdminUsuarios onCerrar={() => setActivePage("dashboard")} />
       default: return <NivelesView user={user} />
     }
