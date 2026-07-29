@@ -20,7 +20,7 @@ const NAV_ITEMS = [
 ]
 
 const ADMIN_ITEMS = [
-  { id: "mantenimiento", label: "Fincas y silos", icon: Warehouse },
+  { id: "mantenimiento", label: "Configuraciones", icon: Warehouse },
   { id: "admin", label: "Usuarios", icon: Users },
 ]
 

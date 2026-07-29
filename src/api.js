@@ -47,6 +47,14 @@ export const api = {
     request("/silos", { method: "POST", body: JSON.stringify(payload) }),
   actualizarSilo: (id, payload) =>
     request(`/silos/${id}`, { method: "PATCH", body: JSON.stringify(payload) }),
+  sensores: (params = "") => request(`/sensores${params}`),
+  sensor: (id) => request(`/sensores/${id}`),
+  crearSensor: (payload) =>
+    request("/sensores", { method: "POST", body: JSON.stringify(payload) }),
+  actualizarSensor: (id, payload) =>
+    request(`/sensores/${id}`, { method: "PATCH", body: JSON.stringify(payload) }),
+  regenerarApiKeySensor: (id) =>
+    request(`/sensores/${id}/api-key`, { method: "PATCH" }),
   lecturas: (id, params = "") => request(`/silos/${id}/lecturas${params}`),
   proyeccion: (id) => request(`/silos/${id}/proyeccion`),
   simular: (id, payload) =>
