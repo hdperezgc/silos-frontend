@@ -471,6 +471,16 @@ function FilaSensor({ sensor, nombreSilo, onActualizado, onNuevaApiKey }) {
     }
   }
 
+  async function handleSolicitarLectura() {
+    setLoading(true)
+    try {
+      await api.solicitarLectura(sensor.id)
+      onActualizado()
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
     <tr className="border-t border-gray-100">
       <td className="py-3 pr-4 text-sm font-medium">{sensor.device_id}</td>
@@ -489,6 +499,22 @@ function FilaSensor({ sensor, nombreSilo, onActualizado, onNuevaApiKey }) {
         >
           {sensor.activo ? "activo" : "inactivo"}
         </button>
+      </td>
+      <td className="py-3 pr-4">
+        {sensor.solicitud_lectura_pendiente ? (
+          <span className="text-xs px-3 py-1 rounded-full font-medium bg-amber-100 text-amber-700">
+            pendiente...
+          </span>
+        ) : (
+          <button
+            onClick={handleSolicitarLectura}
+            disabled={loading || !sensor.activo}
+            className="text-xs text-gray-400 hover:text-granjazul-blue underline disabled:opacity-40"
+            title={!sensor.activo ? "El sensor está inactivo" : "El Arduino la verá en su próxima consulta"}
+          >
+            solicitar lectura ahora
+          </button>
+        )}
       </td>
       <td className="py-3">
         <button
@@ -569,6 +595,7 @@ function VistaSensores() {
               <th className="pb-2 pr-4">Silo</th>
               <th className="pb-2 pr-4">Instalado</th>
               <th className="pb-2 pr-4">Estado</th>
+              <th className="pb-2 pr-4">Lectura</th>
               <th className="pb-2">API key</th>
             </tr>
           </thead>
