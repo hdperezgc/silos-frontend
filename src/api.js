@@ -55,6 +55,8 @@ export const api = {
     request(`/sensores/${id}`, { method: "PATCH", body: JSON.stringify(payload) }),
   regenerarApiKeySensor: (id) =>
     request(`/sensores/${id}/api-key`, { method: "PATCH" }),
+  solicitarLectura: (id) =>
+    request(`/sensores/${id}/solicitar-lectura`, { method: "POST" }),
   lecturas: (id, params = "") => request(`/silos/${id}/lecturas${params}`),
   proyeccion: (id) => request(`/silos/${id}/proyeccion`),
   adminUsuarios: () => request("/admin/usuarios"),
