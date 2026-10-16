@@ -4,6 +4,7 @@ import { api } from "../api"
 export default function SiloForm({ silo, onCerrar, onGuardado }) {
   const [nombre, setNombre] = useState(silo.nombre)
   const [leadTime, setLeadTime] = useState(silo.lead_time_dias ?? "")
+  const [offsetSensor, setOffsetSensor] = useState(silo.offset_sensor_cm ?? "")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
 
@@ -15,6 +16,7 @@ export default function SiloForm({ silo, onCerrar, onGuardado }) {
       await api.actualizarSilo(silo.id, {
         nombre,
         lead_time_dias: leadTime === "" ? null : Number(leadTime),
+        offset_sensor_cm: offsetSensor === "" ? null : Number(offsetSensor),
       })
       onGuardado()
       onCerrar()
@@ -54,6 +56,25 @@ export default function SiloForm({ silo, onCerrar, onGuardado }) {
             <p className="text-[11px] text-gray-400 mt-1">
               Días que necesita el molino para producir y entregar un lote nuevo.
               Se usa para sugerir órdenes de producción automáticamente.
+            </p>
+          </div>
+          <div>
+            <label className="block text-xs text-gray-500 mb-1">
+              Posición del sensor respecto al eje central (cm)
+            </label>
+            <input
+              type="number"
+              min="0"
+              step="1"
+              value={offsetSensor}
+              onChange={(e) => setOffsetSensor(e.target.value)}
+              placeholder="0 = centrado"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-granjazul-blue"
+            />
+            <p className="text-[11px] text-gray-400 mt-1">
+              Distancia horizontal desde el centro del silo hasta donde está montado
+              el sensor. Se usa para avisar cuando el nivel baja a una zona que el
+              sensor no alcanza a ver bien.
             </p>
           </div>
           {error && <p className="text-xs text-red-600">{error}</p>}

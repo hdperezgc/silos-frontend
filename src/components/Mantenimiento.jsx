@@ -1,6 +1,11 @@
 import { useEffect, useState } from "react"
 import { api } from "../api"
 
+// La bandera "solicitar lectura ahora" queda apagada mientras el firmware del
+// Arduino no consulte /sensores/config: sin eso la solicitud se queda en
+// "pendiente" y nadie la atiende. Poner en true cuando el sketch la use.
+const MOSTRAR_SOLICITAR_LECTURA = false
+
 const SILO_FIELDS = [
   { key: "codigo", label: "Código", type: "text", placeholder: "ej. S-01" },
   { key: "nombre", label: "Nombre", type: "text", placeholder: "ej. Silo torre 1" },
@@ -500,6 +505,7 @@ function FilaSensor({ sensor, nombreSilo, onActualizado, onNuevaApiKey }) {
           {sensor.activo ? "activo" : "inactivo"}
         </button>
       </td>
+      {MOSTRAR_SOLICITAR_LECTURA && (
       <td className="py-3 pr-4">
         {sensor.solicitud_lectura_pendiente ? (
           <span className="text-xs px-3 py-1 rounded-full font-medium bg-amber-100 text-amber-700">
@@ -516,6 +522,7 @@ function FilaSensor({ sensor, nombreSilo, onActualizado, onNuevaApiKey }) {
           </button>
         )}
       </td>
+      )}
       <td className="py-3">
         <button
           onClick={handleRegenerar}
@@ -595,7 +602,7 @@ function VistaSensores() {
               <th className="pb-2 pr-4">Silo</th>
               <th className="pb-2 pr-4">Instalado</th>
               <th className="pb-2 pr-4">Estado</th>
-              <th className="pb-2 pr-4">Lectura</th>
+              {MOSTRAR_SOLICITAR_LECTURA && <th className="pb-2 pr-4">Lectura</th>}
               <th className="pb-2">API key</th>
             </tr>
           </thead>
