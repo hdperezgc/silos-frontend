@@ -649,6 +649,18 @@ function VistaSilos() {
 
   useEffect(cargar, [])
 
+  async function handleDesactivar(silo) {
+    if (!window.confirm(
+      `¿Desactivar ${silo.codigo} · ${silo.nombre}? Dejará de aparecer en el panel. El historial se conserva.`
+    )) return
+    try {
+      await api.actualizarSilo(silo.id, { activo: false })
+      cargar()
+    } catch (err) {
+      window.alert(err.message)
+    }
+  }
+
   const nombreFinca = (id) => fincas.find((f) => f.id === id)?.nombre ?? "—"
 
   return (
@@ -686,7 +698,8 @@ function VistaSilos() {
               <th className="pb-2 pr-4">Nombre</th>
               <th className="pb-2 pr-4">Finca</th>
               <th className="pb-2 pr-4">Capacidad</th>
-              <th className="pb-2">Estado</th>
+              <th className="pb-2 pr-4">Estado</th>
+              <th className="pb-2"></th>
             </tr>
           </thead>
           <tbody>
@@ -696,12 +709,20 @@ function VistaSilos() {
                 <td className="py-3 pr-4 text-sm">{s.nombre}</td>
                 <td className="py-3 pr-4 text-sm text-gray-500">{nombreFinca(s.finca_id)}</td>
                 <td className="py-3 pr-4 text-sm text-gray-500">{s.capacidad_kg?.toLocaleString()} kg</td>
-                <td className="py-3">
+                <td className="py-3 pr-4">
                   <span className={`text-xs px-2 py-1 rounded-full font-medium ${
                     s.activo ? "bg-green-100 text-green-700" : "bg-red-100 text-red-600"
                   }`}>
                     {s.activo ? "activo" : "inactivo"}
                   </span>
+                </td>
+                <td className="py-3 text-right">
+                  <button
+                    onClick={() => handleDesactivar(s)}
+                    className="text-xs text-red-600 border border-red-200 px-3 py-1 rounded-lg hover:bg-red-50"
+                  >
+                    Desactivar
+                  </button>
                 </td>
               </tr>
             ))}
