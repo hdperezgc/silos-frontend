@@ -1,8 +1,14 @@
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
+import { RefreshCw } from "lucide-react"
 import { api } from "../api"
 import SiloCard from "./SiloCard"
 import SiloForm from "./SiloForm"
 import ProjectionChart from "./ProjectionChart"
+
+// Cada cuánto se vuelve a pedir la información al backend. Los sensores
+// reportan cada pocos minutos, así que un minuto mantiene el desfase corto
+// sin saturar la API.
+const REFRESCO_MS = 60000
 
 export default function NivelesView({ user }) {
   const [fincas, setFincas] = useState([])
@@ -15,6 +21,8 @@ export default function NivelesView({ user }) {
   const [error, setError] = useState("")
   const [silosConOrden, setSilosConOrden] = useState(new Set())
   const [siloEditando, setSiloEditando] = useState(null)
+  const [ultimaActualizacion, setUltimaActualizacion] = useState(null)
+  const [refrescando, setRefrescando] = useState(false)
 
   useEffect(() => {
     api.fincas()
@@ -25,16 +33,10 @@ export default function NivelesView({ user }) {
       .catch((e) => setError(e.message))
   }, [])
 
-  // Al cargar el dashboard, se pide al backend que revise todos los silos y
-  // genere sugerencias de orden de producción si corresponde, y luego se
-  // consulta cuáles silos ya tienen alguna orden abierta para marcarlos.
-  useEffect(() => {
-    api.evaluarOrdenes().catch(() => {})
-    cargarSilosConOrden()
-  }, [])
-
-  function cargarSilosConOrden() {
-    Promise.all([
+  // Consulta cuáles silos ya tienen alguna orden abierta para marcarlos. Si
+  // falla, se conserva lo que ya se mostraba en vez de borrar las marcas.
+  const cargarSilosConOrden = useCallback(() => {
+    return Promise.all([
       api.ordenes("?estado=sugerida"),
       api.ordenes("?estado=confirmada"),
       api.ordenes("?estado=en_proceso"),
@@ -45,8 +47,16 @@ export default function NivelesView({ user }) {
         )
         setSilosConOrden(idsSet)
       })
-      .catch(() => setSilosConOrden(new Set()))
-  }
+      .catch(() => {})
+  }, [])
+
+  // Al abrir el dashboard se pide al backend que revise todos los silos y
+  // genere sugerencias de orden de producción si corresponde. Solo se hace
+  // una vez: generar órdenes tiene efectos, no debe repetirse en cada refresco.
+  useEffect(() => {
+    api.evaluarOrdenes().catch(() => {})
+    cargarSilosConOrden()
+  }, [cargarSilosConOrden])
 
   useEffect(() => {
     if (fincaId === null) { setLoading(false); return }
@@ -55,9 +65,10 @@ export default function NivelesView({ user }) {
       .then(async (lista) => {
         const detalles = await Promise.all(lista.map((s) => api.silo(s.id)))
         setSilos(detalles)
-    if (detalles.length > 0) {
-      setSelectedSiloId(detalles[0].id)
-    }
+        if (detalles.length > 0) {
+          setSelectedSiloId(detalles[0].id)
+        }
+        setUltimaActualizacion(new Date())
       })
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false))
@@ -68,6 +79,43 @@ export default function NivelesView({ user }) {
     api.proyeccion(selectedSiloId).then(setProyeccion).catch(() => setProyeccion(null))
     api.lecturas(selectedSiloId, "?limite=200").then(setLecturas).catch(() => setLecturas([]))
   }, [selectedSiloId])
+
+  // Refresco silencioso: no muestra "Cargando" ni cambia el silo seleccionado.
+  // Si una petición falla se conserva lo que ya estaba en pantalla.
+  const refrescar = useCallback(async () => {
+    setRefrescando(true)
+    const tareas = [cargarSilosConOrden()]
+    if (fincaId !== null) {
+      tareas.push(
+        api.silos(fincaId)
+          .then((lista) => Promise.all(lista.map((s) => api.silo(s.id))))
+          .then(setSilos)
+      )
+    }
+    if (selectedSiloId !== null) {
+      tareas.push(api.proyeccion(selectedSiloId).then(setProyeccion))
+      tareas.push(api.lecturas(selectedSiloId, "?limite=200").then(setLecturas))
+    }
+    await Promise.allSettled(tareas)
+    setUltimaActualizacion(new Date())
+    setRefrescando(false)
+  }, [fincaId, selectedSiloId, cargarSilosConOrden])
+
+  // Refresco automático. Se pausa con la pestaña en segundo plano y se
+  // actualiza de inmediato cuando vuelve a estar visible.
+  useEffect(() => {
+    const id = setInterval(() => {
+      if (!document.hidden) refrescar()
+    }, REFRESCO_MS)
+    function alVolver() {
+      if (!document.hidden) refrescar()
+    }
+    document.addEventListener("visibilitychange", alVolver)
+    return () => {
+      clearInterval(id)
+      document.removeEventListener("visibilitychange", alVolver)
+    }
+  }, [refrescar])
 
   const siloSeleccionado = silos.find((s) => s.id === selectedSiloId)
 
@@ -81,17 +129,32 @@ export default function NivelesView({ user }) {
           <h2 className="text-lg font-medium">Niveles</h2>
           <p className="text-sm text-gray-500">silos por finca</p>
         </div>
-        {fincas.length > 1 && (
-          <select
-            value={fincaId ?? ""}
-            onChange={(e) => setFincaId(Number(e.target.value))}
-            className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm"
+        <div className="flex items-center gap-3">
+          {ultimaActualizacion && (
+            <span className="text-xs text-gray-400">
+              Actualizado {ultimaActualizacion.toLocaleTimeString("es-GT", { hour: "2-digit", minute: "2-digit" })}
+            </span>
+          )}
+          <button
+            onClick={refrescar}
+            disabled={refrescando}
+            title="Actualizar ahora"
+            className="text-gray-400 hover:text-granjazul-blue disabled:opacity-50"
           >
-            {fincas.map((f) => (
-              <option key={f.id} value={f.id}>{f.nombre}</option>
-            ))}
-          </select>
-        )}
+            <RefreshCw size={14} className={refrescando ? "animate-spin" : ""} />
+          </button>
+          {fincas.length > 1 && (
+            <select
+              value={fincaId ?? ""}
+              onChange={(e) => setFincaId(Number(e.target.value))}
+              className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm"
+            >
+              {fincas.map((f) => (
+                <option key={f.id} value={f.id}>{f.nombre}</option>
+              ))}
+            </select>
+          )}
+        </div>
       </div>
 
       {fincas.length === 0 ? (

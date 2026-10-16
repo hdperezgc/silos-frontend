@@ -22,6 +22,17 @@ function fillColorFor(label) {
   return "#E24B4A"
 }
 
+// "hace 3 min", "hace 2 h", "hace 1 d". Responde a la pregunta de si el
+// sensor sigue reportando sin tener que ir a la base de datos.
+function haceCuanto(fechaIso) {
+  const minutos = Math.max(0, Math.round((Date.now() - new Date(fechaIso).getTime()) / 60000))
+  if (minutos < 1) return "hace un momento"
+  if (minutos < 60) return `hace ${minutos} min`
+  const horas = Math.round(minutos / 60)
+  if (horas < 24) return `hace ${horas} h`
+  return `hace ${Math.round(horas / 24)} d`
+}
+
 export default function SiloCard({ silo, onSelect, selected, ordenPendiente, onEditar }) {
   const nivel = silo.nivel_actual
   const sinDatos = !nivel
@@ -100,6 +111,19 @@ export default function SiloCard({ silo, onSelect, selected, ordenPendiente, onE
         <>
           <p className="mt-2 text-center text-2xl font-medium">{nivel.porcentaje.toFixed(0)}%</p>
           <p className="text-center text-xs text-gray-500">{nivel.kg_estimados.toFixed(0)} kg estimados</p>
+          {nivel.medido_en && (
+            <p className="text-center text-[11px] text-gray-400 mt-0.5">
+              lectura {haceCuanto(nivel.medido_en)}
+            </p>
+          )}
+          {nivel.advertencia && (
+            <p
+              className="text-center text-[11px] text-amber-600 mt-1"
+              title={nivel.advertencia}
+            >
+              nivel fuera del alcance del sensor
+            </p>
+          )}
         </>
       )}
     </div>
